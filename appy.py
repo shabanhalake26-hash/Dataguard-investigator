@@ -52,60 +52,107 @@ with col2:
         value=0
     )
 
-    new_device = st.checkbox("Transaction from a new device")
+    new_device = st.checkbox(
+        "Transaction from a new device"
+    )
+
+    suspicious_location = st.checkbox(
+        "Transaction from a suspicious location"
+    )
 
 st.divider()
 
-if st.button("🚨 Investigate Transaction", use_container_width=True):
+if st.button(
+    "🚨 Investigate Transaction",
+    use_container_width=True
+):
 
     risk_score = 0
     risk_reasons = []
 
-    # Amount risk
+    # Large transaction risk
     if amount >= 100000:
         risk_score += 30
-        risk_reasons.append("Very large transaction amount")
+        risk_reasons.append(
+            "Very large transaction amount"
+        )
     elif amount >= 50000:
         risk_score += 20
-        risk_reasons.append("High transaction amount")
+        risk_reasons.append(
+            "High transaction amount"
+        )
 
     # Account age risk
     if account_age < 30:
         risk_score += 20
-        risk_reasons.append("Very new account")
+        risk_reasons.append(
+            "Very new account"
+        )
 
     # Failed login risk
     if failed_attempts >= 5:
         risk_score += 25
-        risk_reasons.append("Multiple failed login attempts")
+        risk_reasons.append(
+            "Multiple failed login attempts"
+        )
     elif failed_attempts >= 3:
         risk_score += 15
-        risk_reasons.append("Several failed login attempts")
+        risk_reasons.append(
+            "Several failed login attempts"
+        )
 
-    # Device risk
+    # New device risk
     if new_device:
         risk_score += 20
-        risk_reasons.append("Transaction made from a new device")
+        risk_reasons.append(
+            "Transaction made from a new device"
+        )
 
+    # Suspicious location risk
+    if suspicious_location:
+        risk_score += 15
+        risk_reasons.append(
+            "Transaction originated from a suspicious location"
+        )
+
+    # Maximum score
     risk_score = min(risk_score, 100)
 
     # Risk level
     if risk_score >= 70:
         risk_level = "🔴 HIGH RISK"
+        recommendation = (
+            "Block or hold the transaction and conduct "
+            "a manual investigation."
+        )
     elif risk_score >= 40:
         risk_level = "🟠 MEDIUM RISK"
+        recommendation = (
+            "Investigate this transaction further "
+            "before approving it."
+        )
     else:
         risk_level = "🟢 LOW RISK"
+        recommendation = (
+            "Transaction currently appears relatively "
+            "low risk, but continue monitoring."
+        )
 
-    st.header("Investigation Result")
+    st.header("📊 Investigation Result")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.metric("Risk Score", f"{risk_score}/100")
+        st.metric(
+            "Risk Score",
+            f"{risk_score}/100"
+        )
 
     with col2:
-        st.metric("Risk Level", risk_level)
+        st.metric(
+            "Risk Level",
+            risk_level
+        )
 
     st.subheader("🚩 Risk Signals")
 
@@ -113,30 +160,86 @@ if st.button("🚨 Investigate Transaction", use_container_width=True):
         for reason in risk_reasons:
             st.warning(reason)
     else:
-        st.success("No major risk signals detected.")
+        st.success(
+            "No major risk signals detected."
+        )
 
     st.subheader("📋 Investigation Summary")
 
+    investigation_time = datetime.now().strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+
     st.write(
         f"""
-        **Transaction:** {transaction_id or "Not provided"}
+**Transaction ID:** {transaction_id or "Not provided"}
 
-        **Amount:** KES {amount:,.2f}
+**Amount:** KES {amount:,.2f}
 
-        **Location:** {location or "Not provided"}
+**Location:** {location or "Not provided"}
 
-        **Investigation time:** {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+**Account age:** {account_age} days
 
-        **Recommendation:** 
-        {"Investigate this transaction further before approving it."
-        if risk_score >= 40
-        else
-        "Transaction currently appears relatively low risk, but continue monitoring."}
-        """
+**Failed login attempts:** {failed_attempts}
+
+**New device:** {"Yes" if new_device else "No"}
+
+**Suspicious location:** {"Yes" if suspicious_location else "No"}
+
+**Investigation time:** {investigation_time}
+
+**Recommendation:** {recommendation}
+"""
+    )
+
+    # Downloadable investigation report
+    report = f"""
+DATAGUARD INVESTIGATOR
+Fraud Investigation Report
+================================
+
+Transaction ID: {transaction_id or "Not provided"}
+Amount: KES {amount:,.2f}
+Location: {location or "Not provided"}
+
+Account Age: {account_age} days
+Failed Login Attempts: {failed_attempts}
+New Device: {"Yes" if new_device else "No"}
+Suspicious Location: {"Yes" if suspicious_location else "No"}
+
+Risk Score: {risk_score}/100
+Risk Level: {risk_level}
+
+Risk Signals:
+"""
+
+    if risk_reasons:
+        for reason in risk_reasons:
+            report += f"- {reason}\n"
+    else:
+        report += "- No major risk signals detected.\n"
+
+    report += f"""
+Recommendation:
+{recommendation}
+
+Investigation Time:
+{investigation_time}
+
+================================
+DataGuard Investigator
+"""
+
+    st.download_button(
+        label="📥 Download Investigation Report",
+        data=report,
+        file_name=f"{transaction_id or 'transaction'}_report.txt",
+        mime="text/plain",
+        use_container_width=True
     )
 
 st.divider()
 
 st.caption(
     "DataGuard Investigator — Prototype for AI-powered fraud investigation."
-)
+    )
