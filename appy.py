@@ -1,6 +1,9 @@
 import streamlit as st
 from datetime import datetime
-
+from google import genai
+client = genai.Client(
+    api_key=st.secrets["GEMINI_API_KEY"]
+)
 st.set_page_config(
     page_title="DataGuard Investigator",
     page_icon="🛡️",
@@ -247,8 +250,51 @@ if st.button(
         )
 
     # -----------------------------
-    # Investigation summary
+    # Gemini investigation explanation
     # -----------------------------
+    st.subheader("🤖 AI Investigation Explanation")
+
+    prompt = f"""
+You are a fraud investigation assistant.
+
+Analyze this transaction:
+
+Transaction ID: {transaction_id or "Not provided"}
+Amount: KES {amount:,.2f}
+Location: {location or "Not provided"}
+Account age: {account_age} days
+Failed login attempts: {failed_attempts}
+New device: {"Yes" if new_device else "No"}
+Suspicious location: {"Yes" if suspicious_location else "No"}
+Risk score: {risk_score}/100
+Risk level: {risk_level}
+
+Risk signals:
+{", ".join(risk_reasons) if risk_reasons else "None"}
+
+Explain in simple language:
+1. Why this transaction received this risk score.
+2. Which signals are most concerning.
+3. What an investigator should check next.
+
+Do not claim that fraud has definitely occurred.
+Keep the explanation concise and professional.
+"""
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+
+        st.info(response.text)
+
+    except Exception:
+        st.warning(
+            "AI explanation could not be generated. "
+            "The rule-based investigation is still available."
+        )
+
     st.subheader("📋 Investigation Summary")
 
     st.write(
