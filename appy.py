@@ -288,12 +288,11 @@ Keep the explanation concise and professional.
         )
 
         st.info(response.text)
-
-    except Exception:
-        st.warning(
-            "AI explanation could not be generated. "
-            "The rule-based investigation is still available."
-        )
+except Exception as e:
+    st.warning(
+        f"AI explanation could not be generated: {e}"
+    )
+    
 
     st.subheader("📋 Investigation Summary")
 
