@@ -281,17 +281,18 @@ Do not claim that fraud has definitely occurred.
 Keep the explanation concise and professional.
 """
 
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt
-        )
+            try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
 
-        st.info(response.text)
-except Exception as e:
-    st.warning(
-        f"AI explanation could not be generated: {e}"
-    )
+            st.info(response.text)
+
+        except Exception as e:
+            st.warning(
+                f"AI explanation could not be generated: {e}"
+            )
     
 
     st.subheader("📋 Investigation Summary")
